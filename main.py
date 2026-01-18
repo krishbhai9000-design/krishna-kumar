@@ -1,40 +1,56 @@
-from flask import Flask, Response
-import os
+from flask import Flask, request, jsonify
+import time
 
 app = Flask(__name__)
 
-# =====================
-# ROOT CHECK
-# =====================
-@app.route("/", strict_slashes=False)
+# =========================
+# 🔧 CONTROL FLAGS (YAHIN SE CONTROL)
+# =========================
+ALLOW_LOGIN = True        # True = allow, False = block
+EXPIRE_AT = 0             # 0 = no expiry (unix timestamp use karo)
+
+# =========================
+# 🧠 FORWARDER ENDPOINT
+# =========================
+@app.route("/forward", methods=["POST"])
+def forward():
+    data = request.get_json(silent=True) or {}
+
+    # ---- Kill switch ----
+    if not ALLOW_LOGIN:
+        return jsonify({
+            "status": 403,
+            "headers": {},
+            "body_b64": ""
+        })
+
+    # ---- Time limit ----
+    if EXPIRE_AT != 0 and time.time() > EXPIRE_AT:
+        return jsonify({
+            "status": 403,
+            "headers": {},
+            "body_b64": ""
+        })
+
+    # ---- Default: allow (echo back same body) ----
+    return jsonify({
+        "status": 200,
+        "headers": {},                 # agar chaho to custom headers add kar sakte ho
+        "body_b64": data.get("body_b64", "")
+    })
+
+# =========================
+# 🔎 HEALTH CHECK
+# =========================
+@app.route("/", methods=["GET"])
 def home():
-    return "API running", 200
+    return "Control API running", 200
 
 
-# =====================
-# GET PROXY API
-# =====================
-@app.route("/get_proxy", methods=["GET", "POST"], strict_slashes=False)
-def get_proxy():
-    # yaha tum apna real proxy daal sakte ho
-    proxy = "127.0.0.1:8080"
-    return Response(proxy, mimetype="text/plain", status=200)
-
-
-# =====================
-# CERTIFICATE API
-# =====================
-@app.route("/configvalue", methods=["GET", "POST"], strict_slashes=False)
-def configvalue():
-    cert = """-----BEGIN CERTIFICATE-----
-TEST_CERTIFICATE_DATA
------END CERTIFICATE-----"""
-    return Response(cert, mimetype="text/plain", status=200)
-
-
-# =====================
-# RENDER PORT BINDING
-# =====================
+# =========================
+# 🚀 RUN (Render compatible)
+# =========================
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
