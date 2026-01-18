@@ -1,13 +1,14 @@
 from flask import Flask, request, jsonify
 import time
+import os
 
 app = Flask(__name__)
 
 # =========================
-# 🔧 CONTROL FLAGS (YAHIN SE CONTROL)
+# 🔧 CONTROL FLAGS
 # =========================
-ALLOW_LOGIN = True        # True = allow, False = block
-EXPIRE_AT = 0             # 0 = no expiry (unix timestamp use karo)
+ALLOW_LOGIN = True
+EXPIRE_AT = 0  # 0 = no expiry (unix timestamp)
 
 # =========================
 # 🧠 FORWARDER ENDPOINT
@@ -21,7 +22,7 @@ def forward():
         return jsonify({
             "status": 403,
             "headers": {},
-            "body_b64": ""
+            "bodyB64": ""
         })
 
     # ---- Time limit ----
@@ -29,14 +30,14 @@ def forward():
         return jsonify({
             "status": 403,
             "headers": {},
-            "body_b64": ""
+            "bodyB64": ""
         })
 
-    # ---- Default: allow (echo back same body) ----
+    # ---- Allow (echo same body back) ----
     return jsonify({
         "status": 200,
-        "headers": {},                 # agar chaho to custom headers add kar sakte ho
-        "body_b64": data.get("body_b64", "")
+        "headers": {},
+        "bodyB64": data.get("bodyB64", "")
     })
 
 # =========================
@@ -46,11 +47,9 @@ def forward():
 def home():
     return "Control API running", 200
 
-
 # =========================
-# 🚀 RUN (Render compatible)
+# 🚀 RUN
 # =========================
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
