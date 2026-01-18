@@ -8,9 +8,13 @@ def home():
 
 @app.route("/configvalue", methods=["GET", "POST"])
 def configvalue():
-    return """-----BEGIN CERTIFICATE-----
-TEST-CERTIFICATE-DATA
------END CERTIFICATE-----"""
+    return (
+        "-----BEGIN CERTIFICATE-----\n"
+        "TEST_CERTIFICATE_DATA\n"
+        "-----END CERTIFICATE-----"
+    )
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3000)
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
